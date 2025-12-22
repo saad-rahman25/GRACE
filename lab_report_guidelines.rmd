@@ -1,0 +1,85 @@
+# Abstract
+- Summary of Introduction.
+
+
+# Introduction
+Spatio-temporal (S.T.) flow forecasting is crucial for urban planning and congestion management, enabling efficient transportation systems and reduced environmental impact [cite]. Typical examples of ST flow forecasting include predicting the number of visits or check-ins in a point of interest (POI) or region, traffic flow on road networks, and power or load flow in energy grids. By accurately forecasting these flows, city planners and operators can better allocate resources, prevent congestion, and improve the overall quality of life in cities.
+
+In all these settings, data are observed over time at many spatial locations (e.g., sensors, regions, POIs) that are connected through an underlying graph such as a road network, mobility network, or power grid. This naturally leads to **spatio-temporal graph forecasting** problems, where the goal is to use past graph snapshots (T days of history) to predict future flows or visit counts at each node.
+
+Graph Neural Networks are well-suited for this task due to their ability to handle graphs --- capturing spatial dependices [cite] ---
+
+--- Success of self-supervised learning in computer vision and natural language processing for better feature representation [cite] --- this naturally leads us to explore its potential in graph representation leanring for S.T. problems---
+
+This study explores the peformance of common graph neural networks and self-supervised models on graphs for visit counts prediction at each node given T days history. The dataset is synthetically generated and explained in Section 3 [provide later] --- Brief about - what precise experiments have been done --- We conclude this report by proposing certain future directions - to extend/improve upon -- for the benchmarked gnns and/or self-supervised models.
+
+# two variantions of your model.
+
+# Related work
+- GNNs
+  Give some context
+  Explain all tweleve of them.
+- Self-supervised learning:
+  Give some context first.
+  Application in the 
+  There are three types of it:
+  paper: https://arxiv.org/pdf/2103.00111 [highly recommended to skim]
+    - Generative (Christoph)
+    - Contrastive (Avin)
+    - Property Prediction (Rawan)
+  There are 4 ways to train it:
+    finetune freeze or jointlearning or unsupervised or algorithmic
+- Then, explain all the models.
+
+
+# Dataset
+- Explain the realism of the dataset
+
+
+# Experiments and Results
+- Settings
+  train val test split (60 20 20)
+  downstream model
+    - always a two layer GNN
+  hyperparams of the model, training setting
+    - always for Adam optimizer, lr={0.01, 0.001}
+    - hidden layer size {16, 24}
+  context size:
+    - T \in {8, 16}
+    - Horizon = 1
+  metrics:
+    - report MAE, RMSE on test set
+  loss:
+    - MSE
+  early stopping:
+    - monitor val-MAE for 250 epochs
+  all hyperparams only tunned for the validation set
+  eval on test set with the best validation checkpoint
+
+- Tables
+  |Method|Unsupervised|Fine tune|Joint Learning|Algorithmic|MAE|RMSE|MAE|RMSE|
+  |------------------------------Group1-GNN----------------------------------|
+  |------------------------------Group2-GNN----------------------------------|
+  |------------------------------Group3-GNN----------------------------------|
+  |------------------------------Group1-Self-supervised----------------------|
+  |------------------------------Group2-Self-supervised----------------------|
+  |------------------------------Group3-Self-supervised----------------------|
+  - two context sizes
+  - for 24 models
+
+- Plots
+  Val-MAE vs epochs.
+  Train-loss vs epochs.
+
+  Best-Val-MAE vs T (histogram)
+  - for 24 models
+  - do it in two figures - one for gnns - one for self-supervised models.
+  
+
+# Future directions
+
+
+# Individual contributions
+
+
+# Appendix?
