@@ -7,7 +7,12 @@ import torch.optim as optim
 from torch_geometric.utils import dense_to_sparse, dropout_edge
 from model import Encoder, Model, drop_feature
 
-
+###
+# pick first 60% for train in chronological order due to tempora dataset.
+# SSL on all the data
+# Uniform GNN downstream
+# Two GCN Conv layer + MLP head for downstraming.
+###
 # --------------------------------------------------
 # Utils
 # --------------------------------------------------
