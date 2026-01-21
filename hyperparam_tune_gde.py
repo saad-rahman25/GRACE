@@ -175,7 +175,7 @@ def main(args):
                 # Build temporal snapshots
                 xs, ys = build_snapshots(X_full, history)
                 n_snapshots = len(xs)
-                train_split = int(n_snapshots * 0.6)
+                train_split = int(n_snapshots * 0.6)                     # This way fo split maintains the sequential flow of data
                 val_split = int(n_snapshots * 0.8)
 
                 xs_train, ys_train = xs[:train_split], ys[:train_split]

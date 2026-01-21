@@ -4,6 +4,55 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
+# def plot_train_val_curves(
+#     csv_by_T: Dict[int, Union[str, Path]],
+#     title: str = "Training curves",
+#     epoch_col: str = "epoch",
+#     train_col: str = "train_mse",
+#     val_col: str = "val_mae",
+#     best_col: str = "best_val_mae_so_far",
+#     save_path: Union[str, Path] = None
+# ) -> None:
+#     color_by_T = {8: "tab:blue", 16: "tab:pink"}
+#     dfs = {T: pd.read_csv(p) for T, p in csv_by_T.items()}
+
+#     fig, (ax_val, ax_train) = plt.subplots(1, 2, figsize=(12, 4), sharex=True)
+#     for T, df in dfs.items():
+#         x = df[epoch_col].astype(int)
+#         color = color_by_T.get(T, "black")
+
+#         ax_val.plot(x, df[val_col], color=color, label=f"T={T}")
+#         ax_train.plot(x, df[train_col], color=color)
+
+#         best_val = df[best_col].iloc[-1]
+#         best_row = df[df[best_col] == best_val].iloc[0]
+#         best_epoch = int(best_row[epoch_col])
+#         best_val_mae = float(best_row[val_col])
+#         best_train_mse = float(best_row[train_col])
+
+#         ax_val.axvline(best_epoch, linestyle="--", color=color, linewidth=1.5)
+#         ax_train.axvline(best_epoch, linestyle="--", color=color, linewidth=1.5)
+#         ax_val.annotate(f"Best val:{best_val_mae:.3f}", xy=(best_epoch, best_val_mae),
+#                         xytext=(6, 150), textcoords="offset points", color=color, fontsize=9, va="center")
+#         ax_train.annotate(f"Best val:{best_train_mse:.3e}", xy=(best_epoch, best_train_mse),
+#                           xytext=(6, 150), textcoords="offset points", color=color, fontsize=9, va="center")
+
+#     ax_val.set_title("Val-MAE vs Epoch")
+#     ax_val.set_xlabel("Epoch")
+#     ax_val.set_ylabel("Val MAE")
+#     ax_val.grid(True, linestyle="--", alpha=0.5)
+#     ax_train.set_title("Train MSE vs Epoch")
+#     ax_train.set_xlabel("Epoch")
+#     ax_train.set_ylabel("Train MSE")
+#     ax_train.grid(True, which="both", linestyle="--", alpha=0.5)
+#     handles, labels = ax_val.get_legend_handles_labels()
+#     fig.legend(handles, labels, ncol=len(labels), frameon=False)
+#     fig.suptitle(title, y=1.05)
+#     fig.tight_layout()
+#     if save_path:
+#         fig.savefig(save_path)
+#     plt.show()
+
 def plot_train_val_curves(
     csv_by_T: Dict[int, Union[str, Path]],
     title: str = "Training curves",
@@ -16,42 +65,77 @@ def plot_train_val_curves(
     color_by_T = {8: "tab:blue", 16: "tab:pink"}
     dfs = {T: pd.read_csv(p) for T, p in csv_by_T.items()}
 
-    fig, (ax_val, ax_train) = plt.subplots(1, 2, figsize=(12, 4), sharex=True)
-    for T, df in dfs.items():
+    # Increased height slightly to accommodate stacked text
+    fig, (ax_val, ax_train) = plt.subplots(1, 2, figsize=(12, 5), sharex=True)
+    
+    sorted_Ts = sorted(dfs.keys())
+
+    for i, T in enumerate(sorted_Ts):
+        df = dfs[T]
         x = df[epoch_col].astype(int)
         color = color_by_T.get(T, "black")
 
         ax_val.plot(x, df[val_col], color=color, label=f"T={T}")
         ax_train.plot(x, df[train_col], color=color)
 
+        # Get best performance metrics
         best_val = df[best_col].iloc[-1]
         best_row = df[df[best_col] == best_val].iloc[0]
         best_epoch = int(best_row[epoch_col])
         best_val_mae = float(best_row[val_col])
         best_train_mse = float(best_row[train_col])
 
+        # Draw vertical lines
         ax_val.axvline(best_epoch, linestyle="--", color=color, linewidth=1.5)
         ax_train.axvline(best_epoch, linestyle="--", color=color, linewidth=1.5)
-        ax_val.annotate(f"Best val:{best_val_mae:.3f}", xy=(best_epoch, best_val_mae),
-                        xytext=(6, 150), textcoords="offset points", color=color, fontsize=9, va="center")
-        ax_train.annotate(f"Best val:{best_train_mse:.3e}", xy=(best_epoch, best_train_mse),
-                          xytext=(6, 150), textcoords="offset points", color=color, fontsize=9, va="center")
 
+        # --- FIX: VERTICAL STACKING LOGIC ---
+        # We ignore the actual Y-value of the data for the text position 
+        # and stack them starting from a base offset.
+        base_stack = 15  # Starting height in points above the data point
+        spacing = 15     # Pixels between the two text labels
+        current_stack_offset = base_stack + (i * spacing)
+
+        ax_val.annotate(
+            f"Best val:{best_val_mae:.3f}", 
+            xy=(best_epoch, best_val_mae),
+            xytext=(8, current_stack_offset), 
+            textcoords="offset points", 
+            color=color, fontsize=9, va="center"
+        )
+        
+        ax_train.annotate(
+            f"Best val:{best_train_mse:.3e}", 
+            xy=(best_epoch, best_train_mse),
+            xytext=(8, current_stack_offset), 
+            textcoords="offset points", 
+            color=color, fontsize=9, va="center"
+        )
+
+    # Final visual adjustments
     ax_val.set_title("Val-MAE vs Epoch")
     ax_val.set_xlabel("Epoch")
     ax_val.set_ylabel("Val MAE")
-    ax_val.grid(True, linestyle="--", alpha=0.5)
+    ax_val.grid(True, linestyle="--")
+    # Add 15% headroom to prevent text hitting the top border
+    ax_val.set_ylim(None, ax_val.get_ylim()[1] * 1.85)
+
     ax_train.set_title("Train MSE vs Epoch")
     ax_train.set_xlabel("Epoch")
     ax_train.set_ylabel("Train MSE")
-    ax_train.grid(True, which="both", linestyle="--", alpha=0.5)
+    ax_train.grid(True, which="both", linestyle="--")
+    ax_train.set_ylim(None, ax_train.get_ylim()[1] * 1.85)
+    
     handles, labels = ax_val.get_legend_handles_labels()
-    fig.legend(handles, labels, ncol=len(labels), frameon=False)
-    fig.suptitle(title, y=1.05)
-    fig.tight_layout()
+    fig.legend(handles, labels, loc='upper center', bbox_to_anchor=(0.5, 0.92),
+               ncol=len(labels), frameon=False)
+    
+    fig.suptitle(title, y=0.98, fontsize=12)
+    fig.tight_layout(rect=[0, 0.03, 1, 0.95]) # Make room for suptitle and legend
+    
     if save_path:
-        fig.savefig(save_path)
-    plt.show()
+        fig.savefig(save_path, bbox_inches='tight')
+    plt.show()   
 
 def plot_bestval_grouped_bars(
     records: List[Dict],
