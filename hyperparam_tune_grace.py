@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-hyperparam_tune_gde.py
+hyperparam_tune_grace.py
 
 Hyperparameter tuning for GRACE + downstream GCN regression.
 
 Usage:
-python hyperparam_tune_gde.py --csv visit_matrix_large_depr_z_1.csv --weights weights.csv
+python hyperparam_tune_grace.py --csv visit_matrix_large_depr_z_1.csv --weights weights.csv
 """
 
 import argparse

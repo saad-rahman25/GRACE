@@ -26,7 +26,7 @@
 
 #     subprocess.run(
 #         [
-#             "python", "hyperparam_tune_gde.py",
+#             "python", "hyperparam_tune_grace.py",
 #             "--csv", VISITS,
 #             "--weights", WEIGHTS
 #         ],
