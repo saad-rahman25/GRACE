@@ -79,6 +79,13 @@ def train_downstream(model: Model, xs_train, ys_train, xs_val, ys_val, hidden_di
     optimizer = optim.Adam(regressor.parameters(), lr=lr)
     mse = nn.MSELoss()
 
+    # --------------------------------------------------
+    # 🔥 SPEEDUP 1: cache embeddings ONCE
+    # --------------------------------------------------
+    with torch.no_grad():
+        Z_train = [model(x, edge_index).detach() for x in xs_train]
+        Z_val   = [model(x, edge_index).detach() for x in xs_val]
+
     best_val_mae = float("inf")
     best_state = None
     history_log = []
@@ -86,11 +93,11 @@ def train_downstream(model: Model, xs_train, ys_train, xs_val, ys_val, hidden_di
     for epoch in range(reg_epochs):
         total_loss = 0.0
 
-        # Training
+        # -----------------------------
+        # Training (MLP only now)
+        # -----------------------------
         regressor.train()
-        for x, y in zip(xs_train, ys_train):
-            with torch.no_grad():
-                z = model(x, edge_index)  # shape: num_nodes x hidden_dim
+        for z, y in zip(Z_train, ys_train):
             pred = regressor(z)
             loss = mse(pred, y)
 
@@ -100,31 +107,34 @@ def train_downstream(model: Model, xs_train, ys_train, xs_val, ys_val, hidden_di
 
             total_loss += loss.item()
 
+        # -----------------------------
         # Validation
+        # -----------------------------
         regressor.eval()
         val_mae = 0.0
         val_mse = 0.0
-        val_rmse = 0.0
 
         with torch.no_grad():
-            for x, y in zip(xs_val, ys_val):
-                z = model(x, edge_index)
+            for z, y in zip(Z_val, ys_val):
                 pred = regressor(z)
                 val_mae += torch.mean(torch.abs(pred - y)).item()
-                val_mse += torch.mean((pred -y) ** 2).item()
-                val_rmse += torch.sqrt(torch.tensor(val_mse)).item()
-        val_mae /= len(xs_val)
-        val_mse /= len(xs_val)
+                val_mse += torch.mean((pred - y) ** 2).item()
+
+        val_mae /= len(Z_val)
+        val_mse /= len(Z_val)
+        val_rmse = float(np.sqrt(val_mse))  # ✅ correct + faster
 
         # Track best model
         if val_mae < best_val_mae:
             best_val_mae = val_mae
             best_state = regressor.state_dict()
 
-        # Log for plotting
+        # --------------------------------------------------
+        # 🔒 EXACT SAME LOGGING STRUCTURE (unchanged)
+        # --------------------------------------------------
         history_log.append({
             "epoch": epoch + 1,
-            "train_mse": total_loss / len(xs_train),
+            "train_mse": total_loss / len(Z_train),
             "val_mae": val_mae,
             "val_rmse": val_rmse,
             "val_mse": val_mse,
@@ -134,9 +144,9 @@ def train_downstream(model: Model, xs_train, ys_train, xs_val, ys_val, hidden_di
     # Load best regressor
     regressor.load_state_dict(best_state)
 
-    # Save CSV for plotting
     df_hist = pd.DataFrame(history_log)
     return regressor, best_val_mae, df_hist
+
 
 
 # --------------------------------------------------
